@@ -44,9 +44,12 @@
 | 模型  | Base mAP | 离线量化mAP | ACT量化mAP | TRT-FP32 | TRT-FP16 | TRT-INT8 |  配置文件 | 量化模型  |
 | :-------- |:-------- |:--------: | :---------------------: | :----------------: | :----------------: | :---------------: | :----------------------: | :---------------------: |
 | PP-YOLOE-l | 50.9  |  - | 50.6  |   11.2ms  |   7.7ms   |  **6.7ms**  |  [config](https://github.com/PaddlePaddle/PaddleDetection/tree/develop/deploy/auto_compression/configs/ppyoloe_l_qat_dis.yaml) | [Quant Model](https://bj.bcebos.com/v1/paddle-slim-models/act/ppyoloe_crn_l_300e_coco_quant.tar) |
+| PP-YOLOE-SOD | 38.5  |  - | 37.6  |   -  |   -   |  -  |  [config](./configs/ppyoloe_crn_l_80e_sliced_visdrone_640_025_qat.yml) | [Quant Model](https://bj.bcebos.com/v1/paddle-slim-models/act/ppyoloe_sod_visdrone.tar) |
 
-- mAP的指标均在COCO val2017数据集中评测得到，IoU=0.5:0.95。
+git
+- PP-YOLOE-l mAP的指标在COCO val2017数据集中评测得到，IoU=0.5:0.95。
 - PP-YOLOE-l模型在Tesla V100的GPU环境下测试，并且开启TensorRT，batch_size=1，包含NMS，测试脚本是[benchmark demo](https://github.com/PaddlePaddle/PaddleDetection/tree/release/2.4/deploy/python)。
+- PP-YOLOE-SOD 的指标在VisDrone-DET数据集切图后的COCO格式[数据集](https://bj.bcebos.com/v1/paddledet/data/smalldet/visdrone_sliced.zip)中评测得到，IoU=0.5:0.95。定义文件[ppyoloe_crn_l_80e_sliced_visdrone_640_025.yml](../../configs/smalldet/ppyoloe_crn_l_80e_sliced_visdrone_640_025.yml)
 
 ### PP-PicoDet
 
@@ -147,8 +150,15 @@ export CUDA_VISIBLE_DEVICES=0
 python eval.py --config_path=./configs/ppyoloe_l_qat_dis.yaml
 ```
 
+使用paddle inference并使用trt int8得到模型的mAP:
+```
+export CUDA_VISIBLE_DEVICES=0
+python paddle_inference_eval.py --model_path ./output/ --reader_config configs/ppyoloe_reader.yml --precision int8 --use_trt=True
+```
+
 **注意**：
 - 要测试的模型路径可以在配置文件中`model_dir`字段下进行修改。
+- --precision 默认为paddle，如果使用trt，需要设置--use_trt=True，同时--precision 可设置为fp32/fp16/int8
 
 ## 4.预测部署
 
